@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreReferentielRequest;
 use App\Services\ReferentielService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -22,27 +23,15 @@ class ReferentielController extends Controller
         $referentiels = $this->referentielService->getReferentiels($filters);
         return response()->json($referentiels, 200);
     }
-
-    public function store(Request $request)
+    public function store(StoreReferentielRequest $request)
     {
         // Générer un code unique
         $code = $this->generateUniqueCode();
-
+    
         // Fusionner le code généré avec les autres données de la requête
-        $data = $request->all();
+        $data = $request->validated(); // Récupère les données validées
         $data['code'] = $code; // Ajoute le code généré
-
-        $validator = Validator::make($data, [
-            'libelle' => 'required|string|unique:referentiels',
-            'description' => 'required|string',
-            'photo_couverture' => 'required|string',
-            'competences' => 'array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
+    
         try {
             $id = $this->referentielService->createReferentiel($data);
             return response()->json(['id' => $id, 'message' => 'Référentiel créé avec succès'], 201);
@@ -50,7 +39,7 @@ class ReferentielController extends Controller
             return response()->json(['error' => $e->getMessage()], 400);
         }
     }
-
+    
     private function generateUniqueCode()
     {
         do {

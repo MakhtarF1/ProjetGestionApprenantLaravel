@@ -14,6 +14,8 @@ class FirebaseService
 
     public function __construct()
     {
+        
+dd('ok');
         $credentialsFile = '/home/anonima/GestionEcoleLaravel1/credentials.json';
         $databaseUrl = 'https://gestion-ecolestore-default-rtdb.firebaseio.com/';
 

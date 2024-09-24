@@ -57,6 +57,7 @@ class ApprenantController extends Controller
     
     public function index(Request $request)
     {
+    
         $filters = $request->only(['referentiel', 'statut']);
         $apprenants = $this->apprenantService->getApprenants($filters);
         return response()->json($apprenants, 200);
