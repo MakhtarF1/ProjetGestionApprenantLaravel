@@ -2,21 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Passport\HasApiTokens;
 
-class UserPostgresModel extends Model
+class UserPostgresModel extends Authenticatable
 {
+    use HasApiTokens;
+
     protected $table = 'users';
 
     protected $fillable = [
-        'nom', 'prenom', 'adresse', 'telephone', 'email', 'fonction', 'photo', 'statut', 'role','password'
+        'nom', 'prenom', 'adresse', 'telephone', 'email', 'fonction', 'photo', 'statut', 'role', 'password'
     ];
 
     protected $hidden = [
         'password',
     ];
-
-
-    
-
 }
