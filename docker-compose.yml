@@ -40,19 +40,19 @@ services:
     image: nginx:latest
     container_name: nginx_server
     ports:
-      - "8080:80"
+      - "8080:80"  # Mappage du port 80 du conteneur au port 8080 de l'hôte
     volumes:
       - .:/var/www/html
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./fastcgi-php.conf:/etc/nginx/snippets/fastcgi-php.conf 
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf  # Configuration Nginx
+      - ./fastcgi-php.conf:/etc/nginx/snippets/fastcgi-php.conf  # Configuration FastCGI
     depends_on:
-      - app
+      - app  # Nginx dépend de l'application Laravel
     networks:
       - app-network
 
 volumes:
-  pgdata:
+  pgdata:  # Volume pour la base de données Postgres
 
 networks:
   app-network:
-    driver: bridge
+    driver: bridge  # Réseau par défaut pour la communication entre les conteneurs
