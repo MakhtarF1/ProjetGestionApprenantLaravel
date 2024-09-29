@@ -1,0 +1,7 @@
+# Ignore les fichiers et répertoires temporaires
+*.log
+node_modules
+vendor
+.git
+.dockerignore
+Dockerfile
