@@ -14,8 +14,6 @@ class FirebaseService
 
     public function __construct()
     {
-        
-// dd('ok');
         $credentialsFile = '/var/www/html/GestionEcoleLaravel1/Fichiers_credentials.json';
         $databaseUrl = 'https://gestion-ecolestore-default-rtdb.firebaseio.com/';
 
@@ -27,6 +25,7 @@ class FirebaseService
             ->withServiceAccount($credentialsFile)
             ->withDatabaseUri($databaseUrl);
 
+        // Ajoutez le projectId ici
         $this->auth = $factory->createAuth();
         $this->database = $factory->createDatabase();
     }

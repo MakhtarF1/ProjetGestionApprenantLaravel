@@ -8,6 +8,7 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 
 class AuthServiceProvider extends ServiceProvider
 {
+    
     protected $policies = [
         UserPostgresModel::class => UserPolicy::class,
     ];

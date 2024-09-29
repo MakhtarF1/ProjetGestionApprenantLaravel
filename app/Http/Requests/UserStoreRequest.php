@@ -10,23 +10,21 @@ class UserStoreRequest extends FormRequest
     {
         return true;
     }
-
     public function rules()
     {
         return [
-            'nom' => 'required|string',
-            'prenom' => 'required|string',
-            'adresse' => 'required|string',
-            'telephone' => 'required|string',
-            'email' => 'required|email|unique:users,email',
-            'fonction' => 'nullable|string',
-            'photo' => 'nullable|string',
-            'statut' => 'nullable|string',
-            'role' => 'required|string|in:admin,coach,manager,cm',
-            'password' => 'required|string|min:6',
+            'nom' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'adresse' => 'required|string|max:255',
+            'telephone' => 'required|string|max:20',
+            'email' => 'required|string|email|max:255|unique:users',
+            'fonction' => 'nullable|string|max:255',
+            'photo' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048',
+            'statut' => 'nullable|string|max:50',
+            'password' => 'required|string|min:8',
+            'role' => 'required|string',
         ];
     }
-
     public function messages()
     {
         return [

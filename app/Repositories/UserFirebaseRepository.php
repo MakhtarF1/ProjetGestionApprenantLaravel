@@ -22,13 +22,18 @@ class UserFirebaseRepository implements UserRepositoryInterface
         return UserFirebaseFacade::find($id);
     }
 
-    public function save($id, array $data)
+    public function update($id, array $data)
     {
-        return UserFirebaseFacade::save($id, $data);
+        return UserFirebaseFacade::update($id, $data);
     }
 
     public function delete($id)
     {
         return UserFirebaseFacade::delete($id);
+    }
+
+    public function createMany(array $usersData): array
+    {
+        return UserFirebaseFacade::createMany($usersData);
     }
 }

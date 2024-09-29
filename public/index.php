@@ -1,32 +1,18 @@
 <?php
 
+use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
-$port = env('PORT', 8080);
 
 define('LARAVEL_START', microtime(true));
 
+require __DIR__.'/../vendor/autoload.php';
 
-// Determine if the application is in maintenance mode...
-if (file_exists($maintenance = __DIR__ . '/../storage/framework/maintenance.php')) {
-    require $maintenance;
-}
+$app = require_once __DIR__.'/../bootstrap/app.php';
 
-// Ajout pour forcer l'écoute sur le port défini
-$app->bind('Illuminate\Http\Request', function () use ($port) {
-    return Request::capture()->server->set('SERVER_PORT', $port);
-});
+$kernel = $app->make(Kernel::class);
 
-// Register the Composer autoloader...
-require __DIR__ . '/../vendor/autoload.php';
+$response = $kernel->handle(
+    $request = Request::capture()
+)->send();
 
-
-// Bootstrap Laravel and handle the request...
-(require_once __DIR__ . '/../bootstrap/app.php')
-    ->handleRequest(Request::capture());
-
- // Démarrer le serveur intégré de PHP sur le port spécifié
-if (php_sapi_name() === 'cli-server') {
-    $app->run();
-} else {
-    $app->run($app['request']);
-} # Commande pour démarrer l'application
+$kernel->terminate($request, $response);

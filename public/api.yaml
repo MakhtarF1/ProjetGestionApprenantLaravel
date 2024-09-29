@@ -1,318 +1,223 @@
 openapi: 3.0.0
 info:
-  title: Promotion API
+  title: API Apprenant
+  description: API pour la gestion des apprenants et authentification
   version: 1.0.0
-  description: API de gestion des promotions et des référentiels.
-
 servers:
   - url: http://localhost:8000/api/v1
-    description: API locale
+    description: Serveur local
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Apprenant:
+      type: object
+      properties:
+        id:
+          type: string
+        nom:
+          type: string
+        prenom:
+          type: string
+        adresse:
+          type: string
+        telephone:
+          type: string
+        email:
+          type: string
+        photo:
+          type: string
+        referentiel:
+          type: string
+        date_naissance:
+          type: string
+          format: date
+        sexe:
+          type: string
+          enum: [M, F]
+        qrCode:
+          type: string
+        isActive:
+          type: boolean
+
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+
+          
+    Referentiel:
+      type: object
+      properties:
+        id:
+          type: string
+        libelle:
+          type: string
+        description:
+          type: string
+        code:
+          type: string
+        competences:
+          type: array
+          items:
+            $ref: '#/components/schemas/Competence'
+
+    CreateReferentiel:
+      type: object
+      required:
+        - libelle
+        - description
+        - code
+      properties:
+        libelle:
+          type: string
+        description:
+          type: string
+        code:
+          type: string
+        competences:
+          type: array
+          items:
+            $ref: '#/components/schemas/Competence'
+
+    UpdateReferentiel:
+      type: object
+      properties:
+        libelle:
+          type: string
+        description:
+          type: string
+        competences:
+          type: array
+          items:
+            $ref: '#/components/schemas/Competence'
+
+    Competence:
+      type: object
+      properties:
+        nom:
+          type: string
+        description:
+          type: string
+        modules:
+          type: array
+          items:
+            $ref: '#/components/schemas/Module'
+
+    Module:
+      type: object
+      properties:
+        nom:
+          type: string
+        description:
+          type: string
+        duree_acquisition:
+          type: integer
+
+
+security:
+  - bearerAuth: []
 
 paths:
-  /promotions:
-    get:
-      summary: Lister toutes les promotions
-      tags:
-        - Promotions
-      responses:
-        '200':
-          description: Liste des promotions
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Promotion'
+  /login:
     post:
-      summary: Créer une nouvelle promotion
       tags:
-        - Promotions
+        - Auth
+      summary: Authentification de l'utilisateur
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PromotionCreate'
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authentification réussie
+        '401':
+          description: Identifiants incorrects
+      security: []
+
+  /apprenants/:
+    post:
+      tags:
+        - Apprenant
+      summary: Créer un nouvel apprenant
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                nom:
+                  type: string
+                prenom:
+                  type: string
+                adresse:
+                  type: string
+                telephone:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                photo:
+                  type: string
+                referentiel:
+                  type: string
+                date_naissance:
+                  type: string
+                  format: date
+                sexe:
+                  type: string
+                  enum: [M, F]
       responses:
         '201':
-          description: Promotion créée avec succès
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Promotion créée avec succès
+          description: Apprenant créé avec succès
+        '422':
+          description: Erreur de validation des données
+        '400':
+          description: Erreur lors de la création
+      security:
+        - bearerAuth: []
 
-  /promotions/{id}:
-    put:
-      summary: Mettre à jour une promotion
-      tags:
-        - Promotions
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PromotionUpdate'
-      responses:
-        '200':
-          description: Promotion mise à jour
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Promotion mise à jour avec succès
-
-    delete:
-      summary: Supprimer une promotion
-      tags:
-        - Promotions
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Promotion supprimée
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Promotion supprimée avec succès
-
-  /promotions/{id}/referentiels:
-    patch:
-      summary: Mettre à jour les référentiels d'une promotion
-      tags:
-        - Promotions
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                referentiels:
-                  type: array
-                  items:
-                    type: integer
-      responses:
-        '200':
-          description: Référentiels mis à jour
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Référentiels mis à jour avec succès
-
-  /promotions/{id}/status:
-    patch:
-      summary: Changer le statut d'une promotion
-      tags:
-        - Promotions
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                etat:
-                  type: string
-                  enum: [Actif, Cloturer, Inactif]
-      responses:
-        '200':
-          description: Statut mis à jour
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Statut mis à jour avec succès
-
-  /promotions/{id}/close:
-    post:
-      summary: Fermer une promotion
-      tags:
-        - Promotions
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Promotion fermée
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Promotion fermée avec succès
-
-  /promotions/{id}/referentiels/active:
     get:
-      summary: Récupérer les référentiels actifs d'une promotion
       tags:
-        - Promotions
+        - Apprenant
+      summary: Liste des apprenants
       parameters:
-        - name: id
-          in: path
-          required: true
+        - name: referentiel
+          in: query
+          description: Filtrer par référentiel
           schema:
-            type: integer
+            type: string
+        - name: statut
+          in: query
+          description: Filtrer par statut (actif/inactif)
+          schema:
+            type: string
       responses:
         '200':
-          description: Liste des référentiels actifs
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Referentiel'
-
-  /promotions/{id}/statistics:
-    get:
-      summary: Récupérer les statistiques d'une promotion
-      tags:
-        - Promotions
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Statistiques de la promotion
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  nombre_apprenants:
-                    type: integer
-                  nombre_apprenants_actifs:
-                    type: integer
-                  nombre_apprenants_inactifs:
-                    type: integer
-                  referentiels:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Referentiel'
-  /apprenants:
-    get:
-      summary: Récupérer tous les apprenants
-      tags:
-        - Apprenants
-      responses:
-        200:
-          description: Liste de tous les apprenants
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Apprenant'
-  
-  /apprenants/{id}:
-    get:
-      summary: Récupérer un apprenant par ID
-      tags:
-        - Apprenants
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        200:
-          description: Détails de l'apprenant
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Apprenant'
-        404:
-          description: Apprenant non trouvé
-    put:
-      summary: Mettre à jour un apprenant
-      tags:
-        - Apprenants
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ApprenantInput'
-      responses:
-        200:
-          description: Apprenant mis à jour avec succès
-        404:
-          description: Apprenant non trouvé
-    delete:
-      summary: Supprimer un apprenant
-      tags:
-        - Apprenants
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        200:
-          description: Apprenant supprimé avec succès
-        404:
-          description: Apprenant non trouvé
+          description: Liste des apprenants
 
   /apprenants/import:
     post:
-      summary: Importer des apprenants à partir d'un fichier Excel
       tags:
-        - Apprenants
+        - Apprenant
+      summary: Importer des apprenants via un fichier
       requestBody:
         required: true
         content:
@@ -323,47 +228,318 @@ paths:
                 file:
                   type: string
                   format: binary
-                referentiel_id:
-                  type: integer
-                promotion_id:
-                  type: integer
-      responses:
-        200:
-          description: Import réussi
-        422:
-          description: Erreurs lors de l'import
-  /referentiels:
-    get:
-      summary: Liste des référentiels
-      tags:
-        - Referentiels
-      description: Récupère tous les référentiels (actifs ou selon l'état).
-      parameters:
-        - in: query
-          name: etat
-          schema:
-            type: string
-          description: Filtrer les référentiels selon l'état (e.g., Actif, Archiver)
       responses:
         '200':
-          description: Succès
+          description: Importation réussie
+        '400':
+          description: Erreur lors de l'importation
+
+  /apprenants/{id}:
+    get:
+      tags:
+        - Apprenant
+      summary: Afficher un apprenant par ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Détails de l'apprenant
+        '404':
+          description: Apprenant non trouvé
+      security:
+        - bearerAuth: []
+
+  /apprenants/inactive:
+    get:
+      tags:
+        - Apprenant
+      summary: Liste des apprenants inactifs
+      responses:
+        '200':
+          description: Liste des apprenants inactifs
+      security:
+        - bearerAuth: []
+
+  /v1/apprenants/relance:
+    post:
+      tags:
+        - Apprenant
+      summary: Envoyer un rappel de relance à plusieurs apprenants inactifs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Rappels envoyés avec succès
+        '422':
+          description: Erreur de validation des données
+      security:
+        - bearerAuth: []
+
+  /apprenants/{id}/relance:
+    post:
+      tags:
+        - Apprenant
+      summary: Envoyer un rappel de relance à un apprenant inactif
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Rappel envoyé avec succès
+        '404':
+          description: Apprenant non trouvé
+      security:
+        - bearerAuth: []
+
+  /promotions:
+    post:
+      summary: "Créer une nouvelle promotion"
+      tags:
+        - "Promotions"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                libelle:
+                  type: string
+                  example: "Promo 2024"
+                dateDebut:
+                  type: string
+                  format: date
+                  example: "2024-01-01"
+                dateFin:
+                  type: string
+                  format: date
+                  example: "2024-12-31"
+                photoCouverture:
+                  type: string
+                  nullable: true
+                referentiels:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        201:
+          description: "Promotion créée avec succès"
+        400:
+          description: "Erreur de validation ou exception"
+
+    get:
+      summary: "Lister toutes les promotions"
+      tags:
+        - "Promotions"
+      responses:
+        200:
+          description: "Liste des promotions"
+        400:
+          description: "Erreur de requête"
+
+  /promotions/{id}:
+    patch:
+      summary: "Mettre à jour une promotion"
+      tags:
+        - "Promotions"
+      parameters:
+        - name: "id"
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                libelle:
+                  type: string
+                  example: "Promo 2024"
+                dateDebut:
+                  type: string
+                  format: date
+                  example: "2024-01-01"
+                dateFin:
+                  type: string
+                  format: date
+                  example: "2024-12-31"
+                photoCouverture:
+                  type: string
+                  nullable: true
+      responses:
+        200:
+          description: "Promotion mise à jour avec succès"
+        400:
+          description: "Erreur de validation ou exception"
+
+  /promotions/{id}/referentiels:
+    patch:
+      summary: "Mettre à jour les référentiels d'une promotion"
+      tags:
+        - "Promotions"
+      parameters:
+        - name: "id"
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                referentiels:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        200:
+          description: "Référentiels mis à jour"
+        400:
+          description: "Erreur de validation ou exception"
+    
+    get:
+      summary: "Obtenir les référentiels d'une promotion"
+      tags:
+        - "Promotions"
+      parameters:
+        - name: "id"
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "Référentiels de la promotion"
+        404:
+          description: "Promotion ou référentiels non trouvés"
+
+  /promotions/{id}/etat:
+    patch:
+      summary: "Mettre à jour l'état d'une promotion"
+      tags:
+        - "Promotions"
+      parameters:
+        - name: "id"
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                etat:
+                  type: string
+                  enum: [Actif, Cloturer, Inactif]
+                  example: "Actif"
+      responses:
+        200:
+          description: "État mis à jour avec succès"
+        400:
+          description: "Erreur de validation ou exception"
+
+  /promotions/encours:
+    get:
+      summary: "Obtenir la promotion en cours"
+      tags:
+        - "Promotions"
+      responses:
+        200:
+          description: "Promotion en cours"
+        404:
+          description: "Aucune promotion en cours"
+
+  /promotions/{id}/cloturer:
+    patch:
+      summary: "Clôturer une promotion"
+      tags:
+        - "Promotions"
+      parameters:
+        - name: "id"
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "Promotion clôturée"
+        400:
+          description: "Erreur ou promotion non clôturable"
+
+  /promotions/{id}/stats:
+    get:
+      summary: "Obtenir les statistiques d'une promotion"
+      tags:
+        - "Promotions"
+      parameters:
+        - name: "id"
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: "Statistiques de la promotion"
+        404:
+          description: "Promotion non trouvée"
+
+  /referentiels:
+    get:
+      tags:
+        - referentiels
+      summary: Obtenir la liste des référentiels
+      parameters:
+        - name: etat
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filtrer les référentiels par état
+      responses:
+        '200':
+          description: Liste des référentiels récupérée avec succès
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Referentiel'
+
     post:
-      summary: Créer un référentiel
       tags:
-        - Referentiels
-      description: Crée un nouveau référentiel.
+        - referentiels
+      summary: Créer un nouveau référentiel
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReferentielInput'
+              $ref: '#/components/schemas/CreateReferentiel'
       responses:
         '201':
           description: Référentiel créé avec succès
@@ -373,252 +549,74 @@ paths:
                 type: object
                 properties:
                   id:
-                    type: integer
+                    type: string
+                  message:
+                    type: string
+        '400':
+          description: Erreur lors de la création du référentiel
 
   /referentiels/{id}:
     get:
-      summary: Afficher un référentiel
       tags:
-        - Referentiels
-      description: Récupère les détails d'un référentiel par son ID.
+        - referentiels
+      summary: Obtenir les détails d'un référentiel spécifique
       parameters:
-        - in: path
-          name: id
+        - name: id
+          in: path
           required: true
           schema:
-            type: integer
+            type: string
           description: ID du référentiel
       responses:
         '200':
-          description: Succès
+          description: Détails du référentiel récupérés avec succès
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Referentiel'
         '404':
           description: Référentiel non trouvé
+
     patch:
-      summary: Mettre à jour un référentiel
       tags:
-        - Referentiels
-      description: Met à jour un référentiel existant par son ID.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID du référentiel
+        - referentiels
+      summary: Mettre à jour un référentiel
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReferentielUpdate'
+              $ref: '#/components/schemas/UpdateReferentiel'
       responses:
         '200':
           description: Référentiel mis à jour avec succès
+        '400':
+          description: Erreur lors de la mise à jour du référentiel
+
     delete:
-      summary: Supprimer un référentiel
       tags:
-        - Referentiels
-      description: Archive un référentiel existant par son ID.
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID du référentiel
+        - referentiels
+      summary: Archiver un référentiel
       responses:
         '200':
           description: Référentiel archivé avec succès
-        '404':
-          description: Référentiel non trouvé
+        '400':
+          description: Erreur lors de l'archivage du référentiel
 
-  /archive/referentiels:
+  /referentiels/archive/referentiels:
     get:
-      summary: Liste des référentiels archivés
       tags:
-        - Referentiels
-      description: Récupère tous les référentiels archivés.
+        - referentiels
+      summary: Obtenir la liste des référentiels archivés
       responses:
         '200':
-          description: Succès
+          description: Liste des référentiels archivés récupérée avec succès
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Referentiel'        
+                  $ref: '#/components/schemas/Referentiel'
 
-components:
-  schemas:
-    Apprenant:
-      type: object
-      properties:
-        id:
-          type: integer
-        nom:
-          type: string
-        prenom:
-          type: string
-        date_naissance:
-          type: string
-          format: date
-        sexe:
-          type: string
-          enum: [M, F]
-        adresse:
-          type: string
-        telephone:
-          type: string
-        email:
-          type: string
-        photo:
-          type: string
-        matricule:
-          type: string
-        qrCode:
-          type: string
-    ApprenantInput:
-      type: object
-      properties:
-        nom:
-          type: string
-          example: "Fall"
-        prenom:
-          type: string
-          example: "Makhtar"
-        date_naissance:
-          type: string
-          format: date
-          example: "2000-01-01"
-        sexe:
-          type: string
-          enum: [M, F]
-          example: "M"
-        adresse:
-          type: string
-          example: "123 Rue Dakar"
-        telephone:
-          type: string
-          example: "771234567"
-        email:
-          type: string
-          example: "makhtar@example.com"
-        photo:
-          type: string
-          format: binary
-        referentiel_id:
-          type: integer
-        promotion_id:
-          type: integer
 
-    Promotion:
-      type: object
-      properties:
-        id:
-          type: integer
-        libelle:
-          type: string
-        dateDebut:
-          type: string
-          format: date
-        dateFin:
-          type: string
-          format: date
-        duree:
-          type: integer
-        etat:
-          type: string
-        referentiels:
-          type: array
-          items:
-            $ref: '#/components/schemas/Referentiel'
-    PromotionCreate:
-      type: object
-      properties:
-        libelle:
-          type: string
-        dateDebut:
-          type: string
-          format: date
-        dateFin:
-          type: string
-          format: date
-        duree:
-          type: integer
-        etat:
-          type: string
-        referentiels:
-          type: array
-          items:
-            type: integer
-    PromotionUpdate:
-      type: object
-      properties:
-        libelle:
-          type: string
-        dateDebut:
-          type: string
-          format: date
-        dateFin:
-          type: string
-          format: date
-        duree:
-          type: integer
-        etat:
-          type: string
-        referentiels:
-          type: array
-          items:
-            type: integer
-    Referentiel:
-      type: object
-      properties:
-        id:
-          type: integer
-        libelle:
-          type: string
-        etat:
-          type: string
-    ReferentielInput:
-      type: object
-      required:
-        - libelle
-        - description
-        - photo_couverture
-      properties:
-        libelle:
-          type: string
-        description:
-          type: string
-        photo_couverture:
-          type: string
-        competences:
-          type: array
-          items:
-            type: string
-    ReferentielUpdate:
-      type: object
-      properties:
-        libelle:
-          type: string
-        description:
-          type: string
-        photo_couverture:
-          type: string
-        competences:
-          type: array
-          items:
-            type: string
-        modules:
-          type: array
-          items:
-            type: object
-            properties:
-              competenceId:
-                type: integer
-              module:
-                type: string
+  

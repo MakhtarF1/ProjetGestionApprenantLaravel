@@ -13,18 +13,16 @@ class UserUpdateRequest extends FormRequest
 
     public function rules()
     {
-        $userId = $this->route('id');
-
         return [
-            'nom' => 'sometimes|required|string',
-            'prenom' => 'sometimes|required|string',
-            'adresse' => 'sometimes|required|string',
-            'telephone' => 'sometimes|required|string',
-            'email' => 'sometimes|required|email|unique:users,email,' . $userId,
-            'fonction' => 'sometimes|nullable|string',
-            'photo' => 'sometimes|nullable|string',
-            'statut' => 'sometimes|nullable|string',
-            'password' => 'sometimes|nullable|string|min:6',
+            'nom' => 'sometimes|required|string|max:255',
+            'prenom' => 'sometimes|required|string|max:255',
+            'adresse' => 'sometimes|required|string|max:255',
+            'telephone' => 'sometimes|required|string|max:20|unique:users,telephone',
+            'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $this->route('id'),
+            'fonction' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|max:2048',
+            'statut' => 'nullable|string|max:50',
+            'password' => 'sometimes|required|string|min:8',
         ];
     }
 
@@ -38,7 +36,11 @@ class UserUpdateRequest extends FormRequest
             'email.required' => 'L\'email est requis.',
             'email.email' => 'L\'email doit être un format valide.',
             'email.unique' => 'Cet email est déjà utilisé.',
-            'password.min' => 'Le mot de passe doit contenir au moins 6 caractères.',
+            'telephone.unique' => 'Cet telephone est déjà utilisé.',
+            'photo.image' => 'La photo doit être une image valide.',
+            'photo.max' => 'La photo ne doit pas dépasser 2 Mo.',
+            'password.required' => 'Le mot de passe est requis lors de la mise à jour.',
+            'password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
         ];
     }
 }

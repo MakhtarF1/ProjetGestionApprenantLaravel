@@ -1,30 +1,51 @@
+# Dockerfile
 FROM php:8.3-fpm
 
-# Installer les dépendances système nécessaires
-RUN apt-get update && \
-    apt-get install -y libxml2-dev git unzip && \
-    docker-php-ext-install xml
+# Installation des dépendances système et des extensions PHP
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    zip \
+    unzip \
+    git \
+    curl \
+    libpq-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql
 
-# Installer Composer
+# Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Installer Node.js et npm
-RUN apt-get install -y nodejs npm
+# Installation de Node.js et npm
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get install -y nodejs
 
-# Définir le répertoire de travail
-WORKDIR /app
+# Définition du répertoire de travail
+WORKDIR /var/www/html
 
-# Copier les fichiers composer.json et composer.lock pour installer les dépendances
-COPY composer.json composer.lock ./
-
-# Installer les dépendances de l'application
-RUN composer install --no-dev --optimize-autoloader
-
-# Copier le reste des fichiers de l'application
+# Copie des fichiers de l'application
 COPY . .
 
-# Exposer le port pour le serveur
+# Installation des dépendances PHP
+RUN composer install --no-dev --optimize-autoloader
+
+# Installation des dépendances Node.js et compilation des assets
+RUN npm install && npm run build
+
+# Configuration des permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage
+
+# Exposition du port 8000
 EXPOSE 8000
 
-# Commande pour exécuter l'application
+# Copie du script d'entrée
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Définition du point d'entrée
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+# Commande par défaut
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

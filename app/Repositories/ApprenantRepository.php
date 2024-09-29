@@ -41,11 +41,7 @@ class ApprenantRepository
 
         if (!empty($filters)) {
             $apprenants = array_filter($apprenants, function ($apprenant) use ($filters) {
-                foreach ($filters as $key => $value) {
-                    if ($apprenant[$key] != $value) {
-                        return false;
-                    }
-                }
+               
                 return true;
             });
         }

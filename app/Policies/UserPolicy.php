@@ -2,36 +2,52 @@
 
 namespace App\Policies;
 
-use App\Models\UserPostgresModel;
-use App\Models\UserFirebaseModel;
+use App\Models\UserPostgresModel; // Utiliser le bon modèle
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Support\Facades\Log;
 
 class UserPolicy
 {
     use HandlesAuthorization;
 
-    public function create(UserPostgresModel $user)
+    public function create(UserPostgresModel $user, $role)
     {
-        return in_array($user->role, ['admin', 'manager']);
+        Log::info('User Policy create method called', [
+            'user_role' => $user->role,
+            'requested_role' => $role
+        ]);
+
+        if ($user->role === 'admin') {
+            return in_array($role, ['admin', 'coach', 'manager', 'cem']);
+        }
+
+        if ($user->role === 'manager') {
+            return in_array($role, ['coach', 'manager', 'cem']);
+        }
+
+        if ($user->role === 'cem') {
+            return $role === 'apprenant';
+        }
+
+        return false;
     }
 
-    public function update(UserPostgresModel $user, UserPostgresModel $model)
+    public function update(UserPostgresModel $user, $role)
     {
-        return $user->role === 'admin' || ($user->role === 'manager' && in_array($model->role, ['coach', 'cm']));
-    }
+        if ($user->role === 'admin' || $user->role === 'manager') {
+            return true; // Admin et Manager peuvent mettre à jour n'importe quel rôle
+        }
 
-    public function delete(UserPostgresModel $user, UserPostgresModel $model)
-    {
-        return $user->role === 'admin';
+        return false; // Autres rôles ne peuvent pas mettre à jour
     }
 
     public function viewAny(UserPostgresModel $user)
     {
-        return in_array($user->role, ['admin', 'manager', 'cm']);
+        return true;
     }
 
-    public function view(UserPostgresModel $user, UserPostgresModel $model)
+    public function export(UserPostgresModel $user)
     {
-        return $user->role === 'admin' || $user->id === $model->id;
+        return in_array($user->role, ['admin', 'manager', 'cem']);
     }
 }

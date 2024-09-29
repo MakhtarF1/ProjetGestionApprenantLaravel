@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Facades\Hash;
 
 class UserPostgresModel extends Authenticatable
 {
@@ -18,4 +19,20 @@ class UserPostgresModel extends Authenticatable
     protected $hidden = [
         'password',
     ];
+
+    // Hachage du mot de passe avant la sauvegarde
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            $user->password = Hash::make($user->password);
+        });
+
+        static::updating(function ($user) {
+            if ($user->isDirty('password')) {
+                $user->password = Hash::make($user->password);
+            }
+        });
+    }
 }

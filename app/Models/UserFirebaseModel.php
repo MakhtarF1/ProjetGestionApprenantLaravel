@@ -3,33 +3,45 @@
 namespace App\Models;
 
 use App\Services\FirebaseService;
+use Laravel\Passport\HasApiTokens;
 
 class UserFirebaseModel extends FirebaseModel
 {
+    use HasApiTokens;
     protected string $collection = 'users';
 
-    public string $nom;
-    public string $prenom;
-    public string $adresse;
-    public string $telephone;
-    public string $email;
-    public ?string $fonction; // Fonction peut être null
-    public ?string $photo; // Photo peut être null
-    public ?string $statut; // Statut peut être null
-    public string $password;
+    public ?string $nom = null;
+    public ?string $prenom = null;
+    public ?string $adresse = null;
+    public ?string $telephone = null;
+    public ?string $email = null;
+    public ?string $fonction = null;
+    public ?string $photo = null;
+    public ?string $statut = null;
+    public ?string $password = null;
 
-    public function __construct(FirebaseService $firebaseService, string $nom, string $prenom, string $adresse, string $telephone, string $email, ?string $fonction = null, ?string $photo = null, ?string $statut = null, string $password)
+    public function __construct(FirebaseService $firebaseService = null, array $attributes = [])
     {
-        parent::__construct($firebaseService, $this->collection);
-        $this->nom = $nom;
-        $this->prenom = $prenom;
-        $this->adresse = $adresse;
-        $this->telephone = $telephone;
-        $this->email = $email;
-        $this->fonction = $fonction;
-        $this->photo = $photo;
-        $this->statut = $statut;
-        $this->password = $password;
+        if ($firebaseService) {
+            parent::__construct($firebaseService, $this->collection);
+        }
+        
+        $this->fill($attributes);
+    }
+
+    public function fill(array $attributes): self
+    {
+        foreach ($attributes as $key => $value) {
+            if (property_exists($this, $key)) {
+                $this->$key = $value;
+            }
+        }
+        return $this;
+    }
+
+    public static function createWithAttributes(FirebaseService $firebaseService, array $attributes): self
+    {
+        return new self($firebaseService, $attributes);
     }
 
     public function toArray(): array
@@ -43,7 +55,10 @@ class UserFirebaseModel extends FirebaseModel
             'fonction' => $this->fonction,
             'photo' => $this->photo,
             'statut' => $this->statut,
-            'password' => $this->password, // Ne pas exposer le mot de passe dans la réponse
+            // Ne pas inclure le mot de passe dans le tableau
         ];
     }
+
+
+    
 }
