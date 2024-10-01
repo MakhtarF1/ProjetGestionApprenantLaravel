@@ -55,7 +55,6 @@ class UserFirebaseModel extends FirebaseModel
             'fonction' => $this->fonction,
             'photo' => $this->photo,
             'statut' => $this->statut,
-            // Ne pas inclure le mot de passe dans le tableau
         ];
     }
 
